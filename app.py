@@ -149,7 +149,7 @@ def generateVideo():
 
         
 
-        #cv2.imshow("frame", frame)
+        cv2.imshow("frame", frame)
 
         key = cv2.waitKey(1) & 0xFF
         # Se a tecla 'q' for pressionada, finaliza com o loop
