@@ -91,8 +91,8 @@ def btn_add_slot():
 
 ## load image of parking slot to main canvas
 def loadParkingImage(canv):
-    image = Image.open("images/girl.jpg")
-    image = image.resize((450,360))
+    image = Image.open("images/slot.png")
+    image = image.resize((450,250))
     image = ImageTk.PhotoImage(image)
 
     #canv.grid(row=2, column=3)
@@ -127,16 +127,18 @@ def checkMinimum(list1, val):
     return True
 
 ## update status window
-def updateStatusWindow(frame):
-    for item in frame.winfo_children():
+def updateStatusWindow(message, color):
+    print("update status")
+    for item in statusWindow.winfo_children():
         item.destroy()
 
-    Label(frame, text="test", height=2).pack()
-    frame.pack()
+    Label(statusWindow, text=message, bg=color, fg="white", height=2,width=50).pack(fill=BOTH, expand=1)
+    statusWindow.pack()
+    root.update()
 
 def generateVideo(boxes, statusWindow):
-    # path = 'videos/p2.mp4'
-    # vs = cv2.VideoCapture(path)
+    path = 'videos/p2.mp4'
+    vs = cv2.VideoCapture(path)
     fps = 12
     capSize = (640,360)
     #fourcc = cv2.VideoWriter_fourcc(*'DIVX')
@@ -147,7 +149,6 @@ def generateVideo(boxes, statusWindow):
 
     num_frames = count_frames(path)
     #print(num_frames)
-
 
     get_point = 0  
     i = 0 
@@ -212,6 +213,7 @@ def generateVideo(boxes, statusWindow):
 
                     if saida == False:
                         cv2.putText(frame, timestamp.strftime(" Saida as: %d %m %Y %I:%M:%S"), (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255,0,0),2)
+
                         i += 1
                         if i > 100: 
                             saida = True
@@ -220,16 +222,22 @@ def generateVideo(boxes, statusWindow):
                     cv2.polylines(frame,np.int32([boxes[index]]),True,(0,255,0), 2)
 
                     if saida == False:
-                        cv2.putText(frame, timestamp.strftime(" Saida as: %d %m %Y %I:%M:%S"), (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.65, (0,255,0),2)
+                        cv2.putText(frame, timestamp.strftime(" Available: %d %m %Y %I:%M:%S"), (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.65, (0,255,0),2)
                         i += 1
                         if i > 100: 
-                            saida = True                    
+                            saida = True 
 
+                msg = "Nearest Parking slot is " + str(index)
+                clr = 'green'
+                updateStatusWindow(msg,clr)                   
 
                 available_slots.append(slot_first_x_cord)
 
+        if not available_slots:
+            msg = "Parking slots are not available " 
+            clr = 'red'
+            updateStatusWindow(msg,clr)
 
-        print(available_slots)
 
         # if score[1] == 0: 
         #     cv2.polylines(frame,np.int32([box2]), True ,(0,0,255),2  )
@@ -265,12 +273,13 @@ right = Frame(root, borderwidth=2, relief="solid")
 container = Frame(left, borderwidth=2, relief="solid")
 
 statusWindow = Frame(right, borderwidth=2, relief="solid")
+statusWindow.pack()
 box1 = Listbox(right, borderwidth=2, relief="solid")
 box2 = Frame(right, borderwidth=2, relief="solid")
 
+label2 = Label(left, text="Parking Management System",  font = (30)).pack()
+label3 = Label(left, text="Project of MIT kelaniya").pack()
 label1 = Label(container)
-label2 = Label(left, text="I could be a button")
-label3 = Label(left, text="So could I")
 
 ## load image to window
 loadParkingImage(label1)
@@ -315,10 +324,6 @@ right.pack(side="right", expand=True, fill="both")
 container.pack(expand=True, fill="both", padx=5, pady=5)
 box1.pack(fill="both", padx=1, pady=1)
 box2.pack(expand=True, fill="both", padx=10, pady=10)
-
-#label1.pack()
-label2.pack()
-label3.pack()
 
 #print(boxes)
 #generateVideo(boxes)
