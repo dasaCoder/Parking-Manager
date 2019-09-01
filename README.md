@@ -25,5 +25,6 @@ Basicamente primeiro é extraído as features do local a ser analisado como hist
 
 pip install mysql-connector
 pip install --upgrade imutils
+pip install PyMouse
 
 

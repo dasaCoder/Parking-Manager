@@ -16,11 +16,34 @@ from ferramentas import image_utils
 from svm import SVM
 import datetime
 
-root = Tk()
-root.geometry("900x600")
 
-def btn_delete_cord(id):
-    print(id)
+
+root = Tk()
+root.geometry("800x400")
+
+def updateDeleteSlot(frame):
+    for widget in frame.winfo_children():
+        widget.destroy()
+
+def btn_delete_slot(id,frame):
+    try:
+        connection = mysql.connector.connect(host='localhost',
+                                            database='parking',
+                                            user='root',
+                                            password='123')
+        sql_select_Query =  "DELETE FROM `slots` WHERE `slots`.`id` = "+ str(id)
+        cursor = connection.cursor()
+        cursor.execute(sql_select_Query)
+
+        updateDeleteSlot(frame)
+
+    except Error as e:
+        print("Error reading data from MySQL table", e)
+    finally:
+        if (connection.is_connected()):
+            connection.close()
+            cursor.close()
+            print("MySQL connection is closed")
 
 ## get parking slot coordinates from db
 def getCordData():
@@ -49,10 +72,13 @@ def getCordData():
             cursor.close()
             print("MySQL connection is closed")
 
+def btn_add_slot():
+    print("add slot")
+
 ## load image of parking slot to main canvas
-def btn_add_slot(canv):
+def loadParkingImage(canv):
     image = Image.open("images/girl.jpg")
-    image = image.resize((500, 300))
+    image = image.resize((450,360))
     image = ImageTk.PhotoImage(image)
 
     #canv.grid(row=2, column=3)
@@ -60,6 +86,19 @@ def btn_add_slot(canv):
     canv.configure(image=image)
     canv.image = image
     canv.pack()
+
+        # mouse callback function
+def draw_circle(event,x,y,flags,param):
+    global ix,iy
+    if event == cv2.EVENT_LBUTTONDBLCLK:
+        cv2.circle(frame,(x,y),100,(255,0,0),-1)
+        ix,iy = x,y
+
+def mousePosition(event,x,y,flags,param):
+
+    if event == cv2.EVENT_MOUSEMOVE:
+        print(x,y)
+        param = (x,y)
 
 def generateVideo(boxes):
     path = 'videos/p2.mp4'
@@ -90,7 +129,8 @@ def generateVideo(boxes):
         gau = cv2.GaussianBlur(gray, (7, 7), 0)
         #cv2.imshow("gau ", gau )
 
-        
+        cv2.namedWindow('frame')
+        cv2.setMouseCallback('Drawing spline',mousePosition,[])
         # Not work yet
 
         if get_point == True:
@@ -121,19 +161,20 @@ def generateVideo(boxes):
 
         score = SVM().predict(feature)
 
-        if score[0] == 0: 
-            cv2.polylines(frame,np.int32([box1]), True ,(0,0,255),2  )
-            saida = False
-            i = 0
+        for index,scr in enumerate(score):
+            if scr == 0: 
+                cv2.polylines(frame,np.int32([boxes[index]]), True ,(0,0,255),2  )
+                saida = False
+                i = 0
 
-        else:
-            cv2.polylines(frame,np.int32([box1]),True,(0,255,0), 2)
+            else:
+                cv2.polylines(frame,np.int32([boxes[index]]),True,(0,255,0), 2)
 
-            if saida == False:
-                cv2.putText(frame, timestamp.strftime(" Saida as: %d %m %Y %I:%M:%S"), (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.65, (0, 255, 0),2)
-                i += 1
-                if i > 100: 
-                    saida = True
+                if saida == False:
+                    cv2.putText(frame, timestamp.strftime(" Saida as: %d %m %Y %I:%M:%S"), (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.65, (0, 255, 0),2)
+                    i += 1
+                    if i > 100: 
+                        saida = True
 
 
         # if score[1] == 0: 
@@ -175,6 +216,9 @@ label1 = Label(container)
 label2 = Label(left, text="I could be a button")
 label3 = Label(left, text="So could I")
 
+## load image to window
+loadParkingImage(label1)
+
 # image = Image.open("images/girl.png")
 # image = image.resize((500, 300))
 # image = ImageTk.PhotoImage(image)
@@ -192,7 +236,7 @@ for row in cordinates:
 
     Label(cordinateItem, text=row[1], height=2).grid(row=x, column=0, columnspan=2, padx=5, pady=5)
     #label4 = Label(cordinateItem, text=row[2]).grid(row=x, column=2, columnspan=2, padx = 0, pady = 1)
-    Button(cordinateItem, text="Delete", cursor="hand2", command= lambda: btn_delete_cord(row[0])).grid(row=x, column=4, columnspan=1, padx=5, pady=5)
+    Button(cordinateItem, text="Delete", cursor="hand2", command= lambda: btn_delete_slot(row[0],box1)).grid(row=x, column=4, columnspan=1, padx=5, pady=5)
     cordinateItem.pack(expand=True, fill="both")
     #print(row[2])
     boxes.append(np.array(json.loads(row[2])))
@@ -200,9 +244,15 @@ for row in cordinates:
 
 ## 
 box2.grid_columnconfigure(6, weight=1)
+
 label5 = Label(box2, text="Controls").grid(row=0, column=0)
+
 lable6 = Label(box2, text="Add new parking slot").grid(row=1, column=0, columnspan=3, padx=5, pady=5)
-btnAddCord = Button(box2, text= "Add Slot", cursor= "hand2", command= lambda: btn_add_slot(label1)).grid(row=1, column=3, padx=5, pady=5)
+btnAddCord = Button(box2, text= "Add Slot", cursor= "hand2", command= lambda: btn_add_slot()).grid(row=1, column=3, padx=5, pady=5)
+
+lable6 = Label(box2, text="Open Monitor").grid(row=2, column=0, columnspan=3, padx=5, pady=5)
+btnAddCord = Button(box2, text= "Open", cursor= "hand2", command= lambda: generateVideo(boxes)).grid(row=2, column=3, padx=5, pady=5)
+
 
 left.pack(side="left", expand=True, fill="both")
 right.pack(side="right", expand=True, fill="both")
@@ -214,7 +264,7 @@ box2.pack(expand=True, fill="both", padx=10, pady=10)
 label2.pack()
 label3.pack()
 
-print(boxes)
-generateVideo(boxes)
+#print(boxes)
+#generateVideo(boxes)
 
 root.mainloop()
