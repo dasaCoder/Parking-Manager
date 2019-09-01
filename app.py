@@ -3,6 +3,7 @@ from tkinter import *
 import mysql.connector
 from mysql.connector import Error
 from PIL import ImageTk, Image
+import json
 
 import cv2  
 import imutils
@@ -27,7 +28,7 @@ def getCordData():
         connection = mysql.connector.connect(host='localhost',
                                             database='parking',
                                             user='root',
-                                            password='')
+                                            password='123')
         sql_select_Query = "select * from slots"
         cursor = connection.cursor()
         cursor.execute(sql_select_Query)
@@ -60,7 +61,7 @@ def btn_add_slot(canv):
     canv.image = image
     canv.pack()
 
-def generateVideo():
+def generateVideo(boxes):
     path = 'videos/p2.mp4'
     vs = cv2.VideoCapture(path)
     fps = 12
@@ -100,10 +101,11 @@ def generateVideo():
             check = False
 
         else:
-            box1 = np.array([(130.14516129032256, 226.74999999999994), (85.68951612903224, 223.12096774193543), (121.97983870967742, 175.0362903225806), (155.5483870967742, 179.57258064516125)])       
-            box2 = np.array ([(137.4032258064516, 225.84274193548384), (166.43548387096774, 173.22177419354836), (210.89112903225805, 177.758064516129), (196.375, 226.74999999999994)])
+            box1 = np.array([[130.14516129032256, 226.74999999999994], [85.68951612903224, 223.12096774193543], [121.97983870967742, 175.0362903225806], [155.5483870967742, 179.57258064516125]])       
+            box2 = np.array ([[137.4032258064516, 225.84274193548384], [166.43548387096774, 173.22177419354836], [210.89112903225805, 177.758064516129], [196.375, 226.74999999999994]])
             
-            boxes = [box1, box2]
+            #boxes = [box1,box2]
+            #print(boxes)
         #print('afdasdf')
         #print(box1[0].shape)
 
@@ -124,8 +126,6 @@ def generateVideo():
             saida = False
             i = 0
 
-            
-
         else:
             cv2.polylines(frame,np.int32([box1]),True,(0,255,0), 2)
 
@@ -136,14 +136,14 @@ def generateVideo():
                     saida = True
 
 
-        if score[1] == 0: 
-            cv2.polylines(frame,np.int32([box2]), True ,(0,0,255),2  )
+        # if score[1] == 0: 
+        #     cv2.polylines(frame,np.int32([box2]), True ,(0,0,255),2  )
             
 
 
-        else:
-            cv2.polylines(frame,np.int32([box2]),True,(0,255,0), 2)
-            cv2.putText(frame, timestamp.strftime(" %d %B %Y %I:%M:%S%p"), (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 2.35, (0, 0, 255), 5)
+        # else:
+        #     cv2.polylines(frame,np.int32([box2]),True,(0,255,0), 2)
+        #     cv2.putText(frame, timestamp.strftime(" %d %B %Y %I:%M:%S%p"), (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 2.35, (0, 0, 255), 5)
 
 
 
@@ -183,16 +183,19 @@ label3 = Label(left, text="So could I")
 canv = Canvas(container, width=500, height=300, bg='white')
 
 x = 0
+boxes = []
 cordinates = getCordData()
 for row in cordinates:
     cordinateItem = Frame(box1, relief="solid")
     cordinateItem.grid_rowconfigure(9, weight=1)
     cordinateItem.grid_columnconfigure(4, weight=1)
 
-    label4 = Label(cordinateItem, text=row[1], height=2).grid(row=x, column=0, columnspan=2, padx=5, pady=5)
+    Label(cordinateItem, text=row[1], height=2).grid(row=x, column=0, columnspan=2, padx=5, pady=5)
     #label4 = Label(cordinateItem, text=row[2]).grid(row=x, column=2, columnspan=2, padx = 0, pady = 1)
-    btnRemove = Button(cordinateItem, text="Delete", cursor="hand2", command= lambda: btn_delete_cord(row[0])).grid(row=x, column=4, columnspan=1, padx=5, pady=5)
+    Button(cordinateItem, text="Delete", cursor="hand2", command= lambda: btn_delete_cord(row[0])).grid(row=x, column=4, columnspan=1, padx=5, pady=5)
     cordinateItem.pack(expand=True, fill="both")
+    #print(row[2])
+    boxes.append(np.array(json.loads(row[2])))
     x = x + 1
 
 ## 
@@ -211,6 +214,7 @@ box2.pack(expand=True, fill="both", padx=10, pady=10)
 label2.pack()
 label3.pack()
 
-generateVideo()
+print(boxes)
+generateVideo(boxes)
 
 root.mainloop()

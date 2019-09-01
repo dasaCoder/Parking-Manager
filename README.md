@@ -23,4 +23,7 @@ Basicamente primeiro é extraído as features do local a ser analisado como hist
   
 </p>
 
+pip install mysql-connector
+pip install --upgrade imutils
+
 
