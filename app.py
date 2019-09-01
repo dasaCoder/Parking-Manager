@@ -25,6 +25,17 @@ def updateDeleteSlot(frame):
     for widget in frame.winfo_children():
         widget.destroy()
 
+    cordinates = getCordData()
+
+    for row in cordinates:
+        cordinateItem = Frame(box1, relief="solid")
+        cordinateItem.grid_rowconfigure(9, weight=1)
+        cordinateItem.grid_columnconfigure(4, weight=1)
+
+        Label(cordinateItem, text=row[1], height=2).grid(row=x, column=0, columnspan=2, padx=5, pady=5)
+        Button(cordinateItem, text="Delete", cursor="hand2", command= lambda: btn_delete_slot(row[0],box1)).grid(row=x, column=4, columnspan=1, padx=5, pady=5)
+        cordinateItem.pack(expand=True, fill="both")
+
 def btn_delete_slot(id,frame):
     try:
         connection = mysql.connector.connect(host='localhost',
