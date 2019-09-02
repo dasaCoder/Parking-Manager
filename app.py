@@ -273,6 +273,14 @@ def generateVideo(boxes, statusWindow):
 
         i += 1 
 
+def loadVideo(statusWindow):
+    c = getCordData()
+    y = 0
+    b = []
+    for r in c:
+        b.append(np.array(json.loads(r[2])))
+    
+    generateVideo(b,statusWindow)
 
 left = Frame(root, borderwidth=2, relief="solid")
 right = Frame(root, borderwidth=2, relief="solid")
@@ -287,14 +295,6 @@ label2 = Label(left, text="Parking Management System",  font = (30)).pack()
 label3 = Label(left, text="Project of MIT kelaniya").pack()
 #label1 = Label(container)
 
-## load image to window
-#loadParkingImage(label1)
-
-# image = Image.open("images/girl.png")
-# image = image.resize((500, 300))
-# image = ImageTk.PhotoImage(image)
-# l=Label(container,image=image)
-# l.pack()
 canv = Canvas(container, width=500, height=300, bg='white')
 
 x = 0
@@ -327,7 +327,7 @@ btnAddCord = Button(box2, text= "Add Slot", cursor= "hand2", command= lambda: bt
 # btnAddCord = Button(box2, text= "Reset", cursor= "hand2", command= lambda: btn_reset_slot()).grid(row=2, column=3, padx=5, pady=5)
 
 lable6 = Label(box2, text="Open Monitor").grid(row=2, column=0, columnspan=3, padx=5, pady=5)
-btnAddCord = Button(box2, text= "Open", cursor= "hand2", command= lambda: generateVideo(boxes, statusWindow)).grid(row=2, column=3, padx=5, pady=5)
+btnAddCord = Button(box2, text= "Open", cursor= "hand2", command= lambda: loadVideo(statusWindow)).grid(row=2, column=3, padx=5, pady=5)
 
 
 left.pack(side="left", expand=True, fill="both")
@@ -346,7 +346,7 @@ xscroll = Scrollbar(frame, orient=HORIZONTAL)
 xscroll.grid(row=1, column=0, sticky=E+W)
 yscroll = Scrollbar(frame)
 yscroll.grid(row=0, column=1, sticky=N+S)
-canvas = Canvas(frame, bd=0, xscrollcommand=xscroll.set, yscrollcommand=yscroll.set)
+canvas = Canvas(frame, bd=0, xscrollcommand=xscroll.set, yscrollcommand=yscroll.set,width=450)
 canvas.grid(row=0, column=0, sticky=N+S+E+W)
 xscroll.config(command=canvas.xview)
 yscroll.config(command=canvas.yview)
