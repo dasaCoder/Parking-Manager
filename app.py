@@ -16,14 +16,16 @@ from ferramentas import image_utils
 from svm import SVM
 import datetime
 
-
-
 root = Tk()
 root.geometry("800x400")
 
 path = 'videos/p2.mp4'
 vs = cv2.VideoCapture(path)
 
+# hold new cords of slot
+new_slot = []
+
+#update gui
 def updateDeleteSlot(frame):
     for widget in frame.winfo_children():
         widget.destroy()
@@ -40,6 +42,7 @@ def updateDeleteSlot(frame):
         cordinateItem.pack(expand=True, fill="both")
 
 def btn_delete_slot(id,frame):
+    print(id)
     try:
         connection = mysql.connector.connect(host='localhost',
                                             database='parking',
@@ -86,8 +89,26 @@ def getCordData():
             cursor.close()
             print("MySQL connection is closed")
 
-def btn_add_slot():
-    print("add slot")
+def btn_add_slot(name):
+    print(name)
+    try:
+        connection = mysql.connector.connect(host='localhost',
+                                            database='parking',
+                                            user='root',
+                                            password='123')
+        sql_select_Query = "INSERT INTO `slots` (`name`, `slot`) VALUES ('"+ name +"', '"+ json.dumps(new_slot[-4:]) +"');"
+        cursor = connection.cursor()
+        cursor.execute(sql_select_Query)
+
+        updateDeleteSlot(box1)
+
+    except Error as e:
+        print("Error adding data from MySQL table", e)
+    finally:
+        if (connection.is_connected()):
+            connection.close()
+            cursor.close()
+            print("MySQL connection is closed")
 
 ## load image of parking slot to main canvas
 def loadParkingImage(canv):
@@ -100,19 +121,6 @@ def loadParkingImage(canv):
     canv.configure(image=image)
     canv.image = image
     canv.pack()
-
-        # mouse callback function
-def draw_circle(event,x,y,flags,param):
-    global ix,iy
-    if event == cv2.EVENT_LBUTTONDBLCLK:
-        cv2.circle(frame,(x,y),100,(255,0,0),-1)
-        ix,iy = x,y
-
-def mousePosition(event,x,y,flags,param):
-
-    if event == cv2.EVENT_MOUSEMOVE:
-        print(x,y)
-        param = (x,y)
 
 ## check whether the given value is minimun in array
 def checkMinimum(list1, val): 
@@ -164,8 +172,6 @@ def generateVideo(boxes, statusWindow):
         gau = cv2.GaussianBlur(gray, (7, 7), 0)
         #cv2.imshow("gau ", gau )
 
-        cv2.namedWindow('frame')
-        cv2.setMouseCallback('Drawing spline',mousePosition,[])
         # Not work yet
 
         if get_point == True:
@@ -279,10 +285,10 @@ box2 = Frame(right, borderwidth=2, relief="solid")
 
 label2 = Label(left, text="Parking Management System",  font = (30)).pack()
 label3 = Label(left, text="Project of MIT kelaniya").pack()
-label1 = Label(container)
+#label1 = Label(container)
 
 ## load image to window
-loadParkingImage(label1)
+#loadParkingImage(label1)
 
 # image = Image.open("images/girl.png")
 # image = image.resize((500, 300))
@@ -313,7 +319,12 @@ box2.grid_columnconfigure(6, weight=1)
 label5 = Label(box2, text="Controls").grid(row=0, column=0)
 
 lable6 = Label(box2, text="Add new parking slot").grid(row=1, column=0, columnspan=3, padx=5, pady=5)
-btnAddCord = Button(box2, text= "Add Slot", cursor= "hand2", command= lambda: btn_add_slot()).grid(row=1, column=3, padx=5, pady=5)
+txtSlotName = Entry(box2)
+txtSlotName.grid(row=1, column=3, columnspan=3, padx=5, pady=5)
+btnAddCord = Button(box2, text= "Add Slot", cursor= "hand2", command= lambda: btn_add_slot(txtSlotName.get())).grid(row=1, column=6, padx=5, pady=5)
+
+# lable6 = Label(box2, text="Reset new parking slot Coordinates").grid(row=2, column=0, columnspan=3, padx=5, pady=5)
+# btnAddCord = Button(box2, text= "Reset", cursor= "hand2", command= lambda: btn_reset_slot()).grid(row=2, column=3, padx=5, pady=5)
 
 lable6 = Label(box2, text="Open Monitor").grid(row=2, column=0, columnspan=3, padx=5, pady=5)
 btnAddCord = Button(box2, text= "Open", cursor= "hand2", command= lambda: generateVideo(boxes, statusWindow)).grid(row=2, column=3, padx=5, pady=5)
@@ -327,5 +338,36 @@ box2.pack(expand=True, fill="both", padx=10, pady=10)
 
 #print(boxes)
 #generateVideo(boxes)
+
+frame = Frame(container, bd=2, relief=SUNKEN)
+frame.grid_rowconfigure(0, weight=1)
+frame.grid_columnconfigure(0, weight=1)
+xscroll = Scrollbar(frame, orient=HORIZONTAL)
+xscroll.grid(row=1, column=0, sticky=E+W)
+yscroll = Scrollbar(frame)
+yscroll.grid(row=0, column=1, sticky=N+S)
+canvas = Canvas(frame, bd=0, xscrollcommand=xscroll.set, yscrollcommand=yscroll.set)
+canvas.grid(row=0, column=0, sticky=N+S+E+W)
+xscroll.config(command=canvas.xview)
+yscroll.config(command=canvas.yview)
+frame.pack(fill=BOTH,expand=1)
+
+
+img = ImageTk.PhotoImage(Image.open("images/slot.png"))
+canvas.create_image(0,0,image=img,anchor="nw")
+canvas.config(scrollregion=canvas.bbox(ALL))
+
+#function to be called when mouse is clicked
+def printcoords(event):
+    #outputting x and y coords to console
+    cord = [event.x,event.y]
+    updateSlot(cord)
+
+def updateSlot(cord):
+    new_slot.append(cord)
+    print(new_slot)
+
+#mouseclick event
+canvas.bind("<Button 1>",printcoords)
 
 root.mainloop()
