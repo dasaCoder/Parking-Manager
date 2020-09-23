@@ -4,3 +4,4 @@ numpy
 matplotlib
 sklearn
 scikit-learn==0.20.2
+pip install mysql-connector-python

@@ -46,7 +46,7 @@ def btn_delete_slot(id,frame):
     try:
         connection = mysql.connector.connect(host='localhost',
                                             database='parking',
-                                            user='root',
+                                            user='dbuser',
                                             password='123')
         sql_select_Query =  "DELETE FROM `slots` WHERE `slots`.`id` = "+ str(id)
         cursor = connection.cursor()
@@ -67,7 +67,7 @@ def getCordData():
     try:
         connection = mysql.connector.connect(host='localhost',
                                             database='parking',
-                                            user='root',
+                                            user='dbuser',
                                             password='123')
         sql_select_Query = "select * from slots"
         cursor = connection.cursor()
@@ -94,7 +94,7 @@ def btn_add_slot(name):
     try:
         connection = mysql.connector.connect(host='localhost',
                                             database='parking',
-                                            user='root',
+                                            user='dbuser',
                                             password='123')
         sql_select_Query = "INSERT INTO `slots` (`name`, `slot`) VALUES ('"+ name +"', '"+ json.dumps(new_slot[-4:]) +"');"
         cursor = connection.cursor()
