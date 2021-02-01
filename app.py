@@ -171,7 +171,7 @@ def generateVideo(boxes, statusWindow):
             #cv2.imshow("gray ", gray )
 
             gau = cv2.GaussianBlur(gray, (7, 7), 0)
-
+            
             img_resize = image_utils.getRotateRect(gau, boxes)
             feature = image_utils().extract_features(img_resize)
 
