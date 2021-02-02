@@ -1,5 +1,7 @@
 
 from tkinter import *
+from tkinter import ttk
+
 import mysql.connector
 from mysql.connector import Error
 from PIL import ImageTk, Image
@@ -89,14 +91,14 @@ def getCordData():
             cursor.close()
             print("MySQL connection is closed")
 
-def btn_add_slot(name):
-    print(name)
+def btn_add_slot(name,type):
+    #states -> 0 unavailable 1 available 2 booked
     try:
         connection = mysql.connector.connect(host='localhost',
                                             database='parking',
                                             user='dbuser',
                                             password='123')
-        sql_select_Query = "INSERT INTO `slots` (`name`, `slot`) VALUES ('"+ name +"', '"+ json.dumps(new_slot[-4:]) +"');"
+        sql_select_Query = "INSERT INTO `slots` (`name`, `slot`, `type`,`state`) VALUES ('"+ name +"', '"+ json.dumps(new_slot[-4:]) +"', '"+type+"', 1);"
         cursor = connection.cursor()
         cursor.execute(sql_select_Query)
 
@@ -285,14 +287,25 @@ label5 = Label(box2, text="Controls").grid(row=0, column=0)
 
 lable6 = Label(box2, text="Add new parking slot").grid(row=1, column=0, columnspan=3, padx=5, pady=5)
 txtSlotName = Entry(box2)
-txtSlotName.grid(row=1, column=3, columnspan=1, padx=5, pady=5)
-btnAddCord = Button(box2, text= "Add Slot", cursor= "hand2", command= lambda: btn_add_slot(txtSlotName.get())).grid(row=1, column=4, padx=5, pady=5)
+
+choices = ['car','bike']
+variable = StringVar(root)
+variable.set('car')
+typeOption = ttk.Combobox(box2, values = choices)
+
+Label(box2, text="Name :").grid(row=2, column=0, columnspan=1, padx=5, pady=5)
+txtSlotName.grid(row=2, column=2, columnspan=1, padx=5, pady=5)
+
+Label(box2, text="Type :").grid(row=3, column=0, columnspan=1, padx=5, pady=5)
+typeOption.grid(row=3, column=2, columnspan=1,padx=5, pady=5)
+
+btnAddCord = Button(box2, text= "Add Slot", cursor= "hand2", command= lambda: btn_add_slot(txtSlotName.get(), typeOption.get())).grid(row=4, column=2, padx=5, pady=5)
 
 # lable6 = Label(box2, text="Reset new parking slot Coordinates").grid(row=2, column=0, columnspan=3, padx=5, pady=5)
 # btnAddCord = Button(box2, text= "Reset", cursor= "hand2", command= lambda: btn_reset_slot()).grid(row=2, column=3, padx=5, pady=5)
 
-lable6 = Label(box2, text="Open Monitor").grid(row=2, column=0, columnspan=3, padx=5, pady=5)
-btnAddCord = Button(box2, text= "Open", cursor= "hand2", command= lambda: loadVideo(statusWindow)).grid(row=2, column=3, padx=5, pady=5)
+lable6 = Label(box2, text="Open Monitor").grid(row=5, column=0, columnspan=1, padx=5, pady=5)
+btnAddCord = Button(box2, text= "Open", cursor= "hand2", command= lambda: loadVideo(statusWindow)).grid(row=5, column=2, padx=5, pady=5)
 
 
 left.pack(side="left", expand=True, fill="both")
