@@ -30,8 +30,11 @@ def getBlock():
                                             database=DB,
                                             user=DB_USER,
                                             password=DB_PASSWORD)
+        date = request.args.get('page', default = '2121-03-18', type = str)
         sql_select_Query = "select id,name,state,type from slots"
+        sql_update_query = "UPDATE slots s SET `state` = '2' where s.id = (select slot_id from bookings where date = '"+date+"');"
         cursor = connection.cursor()
+        cursor.execute(sql_update_query)
         cursor.execute(sql_select_Query)
         records = cursor.fetchall()
         print("Total number of rows in Laptop is: ", cursor.rowcount)
@@ -45,6 +48,61 @@ def getBlock():
             response = flask.jsonify(records)
             return response
             print("MySQL connection is closed")
+
+
+@app.route('/bookings', methods=['GET'])
+@cross_origin()
+def getBookings():
+    records = []
+
+    try:
+        connection = mysql.connector.connect(host=DB_HOST,
+                                            database=DB,
+                                            user=DB_USER,
+                                            password=DB_PASSWORD)
+        sql_select_Query = "select * from bookings"
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute(sql_select_Query)
+        records = cursor.fetchall()
+        print("Total number of rows in Laptop is: ", cursor.rowcount)
+        print("\nPrinting each laptop record")
+    except Error as e:
+        print("Error reading data from MySQL table", e)
+    finally:
+        if (connection.is_connected()):
+            connection.close()
+            cursor.close()
+            response = flask.jsonify(records)
+            return response
+            print("MySQL connection is closed")
+
+@app.route('/rentings', methods=['GET'])
+@cross_origin()
+def getRentings():
+    records = []
+
+    try:
+        connection = mysql.connector.connect(host=DB_HOST,
+                                            database=DB,
+                                            user=DB_USER,
+                                            password=DB_PASSWORD)
+        sql_select_Query = "select * from parking_log"
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute(sql_select_Query)
+        records = cursor.fetchall()
+        print("Total number of rows in Laptop is: ", cursor.rowcount)
+        print("\nPrinting each laptop record")
+    except Error as e:
+        print("Error reading data from MySQL table", e)
+    finally:
+        if (connection.is_connected()):
+            connection.close()
+            cursor.close()
+            response = flask.jsonify(records)
+            return response
+            print("MySQL connection is closed")
+
+
 
 
 #states -> 0 unavailable 1 available 2 booked
